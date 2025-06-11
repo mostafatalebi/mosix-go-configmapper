@@ -13,7 +13,7 @@ and use it with the mapped (for example FileSource).
 **If you use multiple input sources**
 When passing an array of inputs, they are checked
 in their respective order. If a value be found, the search stops and
-remaining input will not be checked.
+remaining input will not be checked for that given key.
 
 ### Installation
 ```shell
