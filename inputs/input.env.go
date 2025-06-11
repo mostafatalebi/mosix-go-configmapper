@@ -41,6 +41,11 @@ func (e *InputOsEnv) CanRefresh() bool {
 	return false
 }
 
+func (e *InputOsEnv) Has(key string) bool {
+	_, ok := os.LookupEnv(key)
+	return ok
+}
+
 func (e *InputOsEnv) GetInputName() string {
 	return InputEnvName
 }

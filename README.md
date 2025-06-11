@@ -42,8 +42,8 @@ DbHost string `name:"DB_HOST" default:"SampleName"`
 
 And you can use different validation rules:
 ```golang
-DbConnTimeout time.Duration `name:"DB_CONN_TIMEOUT" default:"10ms" greaterThan:"1ms" lessThan:"1s" ` // gt and lt validations
-DbReadTimeout time.Duration `name:"DB_READ_TIMEOUT" default:"10ms" range:"1ms..1000ms" ` // range with time.Duration 
+DbConnTimeout time.Duration `name:"DB_CONN_TIMEOUT" default:"time.duration::10ms" greaterThan:"1ms" lessThan:"1s" ` // gt and lt validations
+DbReadTimeout time.Duration `name:"DB_READ_TIMEOUT" default:"time.duration::10ms" range:"1ms..1000ms" ` // range with time.Duration 
 MaxConnCount int `name:"MAX_CONN_COUNT" range:"2..10"` // range x..y 
 DbUser string `name:"DB_USER" required=""` // required
 BackoffMultiplier int `name:"BO_MULTIPLIER" default:"25" set:"0,25,50,75,100"` // limit values to a set only

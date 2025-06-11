@@ -39,7 +39,7 @@ func NewInputController(tagName, defaultTagName string, input ...inputs.ValueInp
 		panic("at least on ValueInput is required")
 	}
 	if tagName == "" {
-		tagName = "tag"
+		tagName = "name"
 	}
 	if defaultTagName == "" {
 		defaultTagName = "default"
@@ -377,7 +377,7 @@ func (f *InputController) iterateOverTypes(fieldIndex int, currentFieldType, fie
 				break
 			}
 			v, usedSyntax, vdErr := f.CheckStringPreProcessors(v, validationsRules)
-			if vdErr != nil {
+			if vdErr != nil && vdErr != types.ErrNotFound {
 				mainReason = ReasonValidation
 				mainErr = vdErr
 				break
@@ -431,9 +431,12 @@ func (f *InputController) iterateOverTypes(fieldIndex int, currentFieldType, fie
 				break
 			}
 			v, err := f.resolveNumber(fieldKeyName, tagValue)
-			if err != nil {
+			if err != nil && err != types.ErrNotFound {
 				mainErr = err
 				mainReason = ReasonNotFound
+				break
+			} else if err == types.ErrNotFound {
+				mainErr = nil
 				break
 			}
 			err = types.ValidateNumbers[int64](v, validationsRules)
@@ -444,8 +447,11 @@ func (f *InputController) iterateOverTypes(fieldIndex int, currentFieldType, fie
 			configValue.Elem().Field(i).SetInt(int64(v))
 		case "float16", "float32", "float64":
 			v, err := f.resolveNumber(fieldKeyName, tagValue)
-			if err != nil {
+			if err != nil && err != types.ErrNotFound {
 				mainReason = ReasonNotFound
+				break
+			} else if err == types.ErrNotFound {
+				mainErr = nil
 				break
 			}
 			err = types.ValidateNumbers[float64](v, validationsRules)
@@ -469,8 +475,11 @@ func (f *InputController) iterateOverTypes(fieldIndex int, currentFieldType, fie
 				break
 			}
 			v, err := f.resolveNumber(fieldKeyName, tagValue)
-			if err != nil {
+			if err != nil && err != types.ErrNotFound {
 				mainReason = ReasonNotFound
+				break
+			} else if err == types.ErrNotFound {
+				mainErr = nil
 				break
 			}
 			err = types.ValidateNumbers[uint64](v, validationsRules)
@@ -490,20 +499,22 @@ func (f *InputController) iterateOverTypes(fieldIndex int, currentFieldType, fie
 				}
 				if currentFieldType == "[]int" {
 					v, err := f.resolveNumber(fieldKeyName, tagValue)
-					if err != nil {
-						if err != nil {
-							mainReason = ReasonNotFound
-							break
-						}
+					if err != nil && err != types.ErrNotFound {
+						mainReason = ReasonNotFound
+						break
+					} else if err == types.ErrNotFound {
+						mainErr = nil
+						break
 					}
 					objVal.Index(index).SetInt(int64(v))
 				} else if currentFieldType == "[]string" {
 					v, skipped, err := f.resolveString(fieldKeyName, tagValue)
-					if err != nil {
-						if err != nil {
-							mainReason = ReasonNotFound
-							break
-						}
+					if err != nil && err != types.ErrNotFound {
+						mainReason = ReasonNotFound
+						break
+					} else if err == types.ErrNotFound {
+						mainErr = nil
+						break
 					} else if skipped {
 						mainErr = nil
 						break
@@ -511,8 +522,11 @@ func (f *InputController) iterateOverTypes(fieldIndex int, currentFieldType, fie
 					objVal.Index(index).SetString(v)
 				} else if currentFieldType == "[]float64" {
 					v, err := f.resolveNumber(fieldKeyName, tagValue)
-					if err != nil {
+					if err != nil && err != types.ErrNotFound {
 						mainReason = ReasonNotFound
+						break
+					} else if err == types.ErrNotFound {
+						mainErr = nil
 						break
 					}
 					objVal.Index(index).SetFloat(v)
@@ -656,7 +670,7 @@ func (f *InputController) resolveString(key string, field *reflect.StructTag) (s
 		return v, false, nil
 	}
 	if !allSkipped {
-		return "", false, fmt.Errorf("key '%s' not found in any of the config-input", key)
+		return "", false, types.ErrNotFound
 	}
 	return "", allSkipped, nil
 }
@@ -677,7 +691,7 @@ func (f *InputController) resolveNumber(key string, field *reflect.StructTag) (f
 			return vv, nil
 		}
 	}
-	return 0, fmt.Errorf("key '%s' not found in any of the config-input", key)
+	return 0, types.ErrNotFound
 }
 
 func (f *InputController) resolveBoolean(key string, field *reflect.StructTag) (bool, error) {
@@ -696,7 +710,7 @@ func (f *InputController) resolveBoolean(key string, field *reflect.StructTag) (
 			return vv, nil
 		}
 	}
-	return false, fmt.Errorf("key '%s' not found in any of the config-input", key)
+	return false, types.ErrNotFound
 }
 
 func (f *InputController) resolveDefault(v *reflect.StructTag) string {

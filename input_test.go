@@ -2,6 +2,7 @@ package configmapper
 
 import (
 	"encoding/base64"
+	"mosix-go-configmapper/inputs"
 	"mosix-go-configmapper/types"
 	"net/url"
 	"testing"
@@ -17,7 +18,7 @@ func TestFeatureHub_ShouldReturnError(t *testing.T) {
 	}
 	var cnf = &SampleConfig{}
 
-	inputMock := NewInputMock()
+	inputMock := inputs.NewInputMock()
 
 	inp := NewInputController("env", "default", inputMock)
 
@@ -35,13 +36,13 @@ func TestFeatureHub_ShouldSetValue_AllTypes(t *testing.T) {
 		NotFound  int
 	}
 	var cnf = &SampleConfig{}
-	inputMock := NewInputMock()
+	inputMock := inputs.NewInputMock()
 	var randVal = xid.New().String()
-	inputMock.keysStr["APP_HOST"] = randVal
-	inputMock.keysNumber["APP_PORT"] = 8000
-	inputMock.keysNumber["APP_PRECISION"] = 0.0_000_008
-	inputMock.keysNumber["APP_THRESHOLD"] = 4
-	inputMock.keysBool["APP_DEBUG"] = true
+	inputMock.KeysStr["APP_HOST"] = randVal
+	inputMock.KeysNumber["APP_PORT"] = 8000
+	inputMock.KeysNumber["APP_PRECISION"] = 0.0_000_008
+	inputMock.KeysNumber["APP_THRESHOLD"] = 4
+	inputMock.KeysBool["APP_DEBUG"] = true
 
 	inp := NewInputController("name", "default", inputMock)
 	var err = inp.FetchKeysAndMapThem(cnf)
@@ -63,16 +64,16 @@ func TestFeatureHub_ShouldSetValue_AllTypes_SeveralInputs(t *testing.T) {
 		NotFound  int
 	}
 	var cnf = &SampleConfig{}
-	input1Mock := NewInputMock()
-	input2Mock := NewInputMock()
+	input1Mock := inputs.NewInputMock()
+	input2Mock := inputs.NewInputMock()
 
-	input1Mock.keysStr["APP_HOST"] = "FirstInput_Host"
+	input1Mock.KeysStr["APP_HOST"] = "FirstInput_Host"
 
-	input2Mock.keysStr["APP_HOST"] = "SecondInput_Host"
-	input2Mock.keysNumber["APP_PORT"] = 8000
-	input2Mock.keysNumber["APP_PRECISION"] = 0.0_000_008
-	input2Mock.keysNumber["APP_THRESHOLD"] = 4
-	input2Mock.keysBool["APP_DEBUG"] = true
+	input2Mock.KeysStr["APP_HOST"] = "SecondInput_Host"
+	input2Mock.KeysNumber["APP_PORT"] = 8000
+	input2Mock.KeysNumber["APP_PRECISION"] = 0.0_000_008
+	input2Mock.KeysNumber["APP_THRESHOLD"] = 4
+	input2Mock.KeysBool["APP_DEBUG"] = true
 
 	inp := NewInputController("name", "default", input1Mock, input2Mock)
 
@@ -95,12 +96,12 @@ func TestFeatureHub_ValidationError(t *testing.T) {
 		NotFound  int
 	}
 	var cnf = &SampleConfig{}
-	input1Mock := NewInputMock()
-	input2Mock := NewInputMock()
-	input2Mock.keysNumber["APP_PORT"] = 8000
-	input2Mock.keysNumber["APP_PRECISION"] = 0.0_000_008
-	input2Mock.keysNumber["APP_THRESHOLD"] = 4
-	input2Mock.keysBool["APP_DEBUG"] = true
+	input1Mock := inputs.NewInputMock()
+	input2Mock := inputs.NewInputMock()
+	input2Mock.KeysNumber["APP_PORT"] = 8000
+	input2Mock.KeysNumber["APP_PRECISION"] = 0.0_000_008
+	input2Mock.KeysNumber["APP_THRESHOLD"] = 4
+	input2Mock.KeysBool["APP_DEBUG"] = true
 
 	inp := NewInputController("name", "default", input1Mock, input2Mock)
 
@@ -150,34 +151,34 @@ func TestFeatureHub_CoveringAllTypes(t *testing.T) {
 	var rn = xid.New().String()
 	var cnf = &SampleConfig{}
 	cnf.CannotBeSet = "Cannot be overridden by Input, due to 'skips' tag"
-	input1Mock := NewInputMock()
-	input2Mock := NewInputMock()
+	input1Mock := inputs.NewInputMock()
+	input2Mock := inputs.NewInputMock()
 	var randomText = xid.New().String()
 	var randomEncoded = base64.StdEncoding.EncodeToString([]byte(randomText))
-	input1Mock.keysStr["SAMPLE_BASE64_DECODE"] = "base64.decode::" + randomEncoded
-	input1Mock.keysStr["SAMPLE_BASE64_ENCODE"] = "base64.encode::" + randomText
-	input1Mock.keysStr["SAMPLE_DURATION"] = "time.duration::300s"
-	input1Mock.keysStr["SAMPLE_ARRAY_INT"] = "array.int::50,20, 40, 33,18"
-	input1Mock.keysStr["SAMPLE_MAP"] = "json.object::{\"0\": 5, \"30\": 10, \"60\": 30, \"300\": 60}"
-	input1Mock.keysStr["SAMPLE_ARRAY_STRING"] = "array.string::foo,bar,john,sample"
-	input1Mock.keysStr["SAMPLE_ARRAY_FLOAT"] = "array.float::0.002,10.0, 100"
-	input1Mock.keysStr["SAMPLE_JSON"] = "json.object::{\"name\":\"foo\",\"lastName\":\"bar\"}"
-	input1Mock.keysStr["APP_HOST"] = "example.com" + rn
-	input1Mock.keysStr["SAMPLE_INT_ARRAY"] = "array.int::3,7,1,898984"
-	input1Mock.keysStr["SAMPLE_DATA_SIZE"] = "data.size::20kb"
-	input1Mock.keysStr["SAMPLE_DATA_SIZE_UINT"] = "data.size::10kb"
-	input1Mock.keysStr["SAMPLE_DATA_SIZE_INT"] = "data.size::1kb"
-	input1Mock.keysStr["SAMPLE_URL_ENCODED"] = "url.encode::value="
-	input1Mock.keysStr["SAMPLE_URL_DECODED"] = "url.decode::value%3D"
-	input1Mock.keysNumber["SAMPLE_NUMBER_UNSIGNED_RANGE"] = 2
-	input1Mock.keysNumber["SAMPLE_NUMBER_UNSIGNED_RANGE_ERROR"] = -2
-	input1Mock.keysNumber["SAMPLE_NUMBER_SET"] = 3
-	input1Mock.keysNumber["SAMPLE_NUMBER_GT"] = 64
-	input1Mock.keysNumber["SAMPLE_NUMBER_LT"] = -100
-	input2Mock.keysNumber["APP_PRECISION"] = 0.0_000_008
-	input2Mock.keysNumber["APP_THRESHOLD"] = 4
-	input2Mock.keysStr["APP_CANNOT_BE_SET"] = "A never mapped value"
-	input2Mock.keysBool["APP_DEBUG"] = true
+	input1Mock.KeysStr["SAMPLE_BASE64_DECODE"] = "base64.decode::" + randomEncoded
+	input1Mock.KeysStr["SAMPLE_BASE64_ENCODE"] = "base64.encode::" + randomText
+	input1Mock.KeysStr["SAMPLE_DURATION"] = "time.duration::300s"
+	input1Mock.KeysStr["SAMPLE_ARRAY_INT"] = "array.int::50,20, 40, 33,18"
+	input1Mock.KeysStr["SAMPLE_MAP"] = "json.object::{\"0\": 5, \"30\": 10, \"60\": 30, \"300\": 60}"
+	input1Mock.KeysStr["SAMPLE_ARRAY_STRING"] = "array.string::foo,bar,john,sample"
+	input1Mock.KeysStr["SAMPLE_ARRAY_FLOAT"] = "array.float::0.002,10.0, 100"
+	input1Mock.KeysStr["SAMPLE_JSON"] = "json.object::{\"name\":\"foo\",\"lastName\":\"bar\"}"
+	input1Mock.KeysStr["APP_HOST"] = "example.com" + rn
+	input1Mock.KeysStr["SAMPLE_INT_ARRAY"] = "array.int::3,7,1,898984"
+	input1Mock.KeysStr["SAMPLE_DATA_SIZE"] = "data.size::20kb"
+	input1Mock.KeysStr["SAMPLE_DATA_SIZE_UINT"] = "data.size::10kb"
+	input1Mock.KeysStr["SAMPLE_DATA_SIZE_INT"] = "data.size::1kb"
+	input1Mock.KeysStr["SAMPLE_URL_ENCODED"] = "url.encode::value="
+	input1Mock.KeysStr["SAMPLE_URL_DECODED"] = "url.decode::value%3D"
+	input1Mock.KeysNumber["SAMPLE_NUMBER_UNSIGNED_RANGE"] = 2
+	input1Mock.KeysNumber["SAMPLE_NUMBER_UNSIGNED_RANGE_ERROR"] = -2
+	input1Mock.KeysNumber["SAMPLE_NUMBER_SET"] = 3
+	input1Mock.KeysNumber["SAMPLE_NUMBER_GT"] = 64
+	input1Mock.KeysNumber["SAMPLE_NUMBER_LT"] = -100
+	input2Mock.KeysNumber["APP_PRECISION"] = 0.0_000_008
+	input2Mock.KeysNumber["APP_THRESHOLD"] = 4
+	input2Mock.KeysStr["APP_CANNOT_BE_SET"] = "A never mapped value"
+	input2Mock.KeysBool["APP_DEBUG"] = true
 
 	inp := NewInputController("name", "default", input1Mock, input2Mock)
 	inp.TogglePreprocessors(true)
@@ -239,15 +240,15 @@ func TestURLInputType(t *testing.T) {
 		TimeDurWithValidationErr3 time.Duration `name:"TIME_DUR_WITH_VALIDATION_ERR_3" required:"" lessThan:"20ms"`
 	}
 	var cnf = &SampleConfig{}
-	input1Mock := NewInputMock()
-	input2Mock := NewInputMock()
-	input1Mock.keysStr["URL_HTTP"] = "url::http://example.com"
-	input1Mock.keysStr["URL_FTPS"] = "url::https://example.com"
-	input1Mock.keysStr["URL_HTTPS_URL"] = "url::https://example.com/with/url/pkg"
-	input1Mock.keysStr["TIME_DUR_WITH_VALIDATION"] = "time.duration::25s"
-	input1Mock.keysStr["TIME_DUR_WITH_VALIDATION_ERR"] = "time.duration::1ms"
-	input1Mock.keysStr["TIME_DUR_WITH_VALIDATION_ERR_2"] = "time.duration::999ms"
-	input1Mock.keysStr["TIME_DUR_WITH_VALIDATION_ERR_3"] = "time.duration::19ms"
+	input1Mock := inputs.NewInputMock()
+	input2Mock := inputs.NewInputMock()
+	input1Mock.KeysStr["URL_HTTP"] = "url::http://example.com"
+	input1Mock.KeysStr["URL_FTPS"] = "url::https://example.com"
+	input1Mock.KeysStr["URL_HTTPS_URL"] = "url::https://example.com/with/url/pkg"
+	input1Mock.KeysStr["TIME_DUR_WITH_VALIDATION"] = "time.duration::25s"
+	input1Mock.KeysStr["TIME_DUR_WITH_VALIDATION_ERR"] = "time.duration::1ms"
+	input1Mock.KeysStr["TIME_DUR_WITH_VALIDATION_ERR_2"] = "time.duration::999ms"
+	input1Mock.KeysStr["TIME_DUR_WITH_VALIDATION_ERR_3"] = "time.duration::19ms"
 
 	inp := NewInputController("name", "default", input1Mock, input2Mock)
 	inp.TogglePreprocessors(true)
